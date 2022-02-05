@@ -2,19 +2,23 @@
 #include <assert.h>
 #include <stdbool.h>
 
-#define	BATTERY_TEMPERATURE_NOT_OK	0x01
-#define STATE_OF_CHARGE_NOT_OK		0x02
-#define CHARGE_RATE_NOT_OK		    0x04
+#define	HIGH_BATTERY_TEMPERATURE	0x01
+#define	LOW_BATTERY_TEMPERATURE		0x02
+#define HIGH_STATE_OF_CHARGE		0x04
+#define LOW_STATE_OF_CHARGE		0x08
+#define CHARGE_RATE_NOT_OK		0x10
 
-static unsigned char BatteryErrorStatus;
+unsigned char BatteryErrorStatus = 0;
 /* BatteryErrorStatus
    7 6 5 4 3 2 1 0
    x x x x x x x x
    | | | | | | | |
-   | | | | | | | \___ Set if battery temperature is out of range
-   | | | | | | \_____ Set if State of Charge is out of range
-   | | | | | \_______ Set if charge rate is beyond limit
-   \_\_\_\_\_________ Reserved for future use
+   | | | | | | | \___ Set if battery temperature is above 45
+   | | | | | | \_____ Set if battery temperature is below 0
+   | | | | | \_______ Set if State of Charge is above 80
+   | | | | \_________ Set if State of Charge is below 20
+   | | | \___________ Set if charge rate is beyond limit of 0.8
+   \_\_\_____________ Reserved for future use
 */
 
 typedef struct
@@ -24,56 +28,66 @@ typedef struct
 	float batteryChargeRate;
 } BatteryInfo;
 
-void printWarningToConsole(BatteryInfo batteryinfo)
+void printTemperatureWarningToConsole(BatteryInfo batteryinfo, unsigned char errorStatus)
 {
-	if((BatteryErrorStatus & BATTERY_TEMPERATURE_NOT_OK) == BATTERY_TEMPERATURE_NOT_OK){
-		printf("Temperature (%.1f celcius) is out of range!\n", batteryinfo.batteryTemperature);
+	if((errorStatus & HIGH_BATTERY_TEMPERATURE) == HIGH_BATTERY_TEMPERATURE){
+		printf("Temperature = %.1f celcius, is above 45 celcius!\n", batteryinfo.batteryTemperature);
 	}
-	if((BatteryErrorStatus & STATE_OF_CHARGE_NOT_OK) == STATE_OF_CHARGE_NOT_OK){
-		printf("State of Charge (%.1f) is out of range!\n,", batteryinfo.batteryStateOfCharge);
-	}
-	if((BatteryErrorStatus & CHARGE_RATE_NOT_OK) == CHARGE_RATE_NOT_OK){
-		printf("Charge Rate (%.1f) is out of range!\n", batteryinfo.batteryChargeRate);
+	else if((errorStatus & LOW_BATTERY_TEMPERATURE) == LOW_BATTERY_TEMPERATURE){
+		printf("Temperature = %.1f celcius, is below 0 celcius!\n", batteryinfo.batteryTemperature);
 	}
 }
 
-bool isBatteryTemperatureWithinLimit(BatteryInfo batteryData)
+void printSOCWarningToConsole(BatteryInfo batteryinfo, unsigned char errorStatus)
 {
-	if(batteryData.batteryTemperature < 0 || batteryData.batteryTemperature > 45)
-	{
-		BatteryErrorStatus |= BATTERY_TEMPERATURE_NOT_OK;
-		return false;
+	if((errorStatus & HIGH_STATE_OF_CHARGE) == HIGH_STATE_OF_CHARGE){
+		printf("State of Charge = %.1f, is above 80 percent!\n", batteryinfo.batteryStateOfCharge);
 	}
-	else
-	{
-		return true;
+	else if((errorStatus & LOW_STATE_OF_CHARGE) == LOW_STATE_OF_CHARGE){
+		printf("State of Charge = %.1f, is below 20 percent!\n", batteryinfo.batteryStateOfCharge);
 	}
 }
 
-bool isStateOfChargeWithinLimit(BatteryInfo batteryData)
+void printChargeRateWarningToConsole(BatteryInfo batteryinfo, unsigned char errorStatus)
 {
-	if(batteryData.batteryStateOfCharge < 20 || batteryData.batteryStateOfCharge > 80)
-	{
-		BatteryErrorStatus |= STATE_OF_CHARGE_NOT_OK;
-		return false;
-	}
-	else
-	{
-		return true;
+	if((errorStatus & CHARGE_RATE_NOT_OK) == CHARGE_RATE_NOT_OK){
+	printf("Charge Rate = %.1f, is above 0.8\n", batteryinfo.batteryChargeRate);
 	}
 }
 
-bool isChargeRateWithinLimit(BatteryInfo batteryData )
+void isBatteryTemperatureWithinLimit(BatteryInfo batteryData)
+{
+	if(batteryData.batteryTemperature < 0)
+	{
+		BatteryErrorStatus |= LOW_BATTERY_TEMPERATURE;
+	}
+	else if(batteryData.batteryTemperature > 45)
+	{
+		BatteryErrorStatus |= HIGH_BATTERY_TEMPERATURE;
+	}
+	printTemperatureWarningToConsole(batteryData, BatteryErrorStatus);
+}
+
+void isStateOfChargeWithinLimit(BatteryInfo batteryData)
+{
+	if(batteryData.batteryStateOfCharge < 20)
+	{
+		BatteryErrorStatus |= LOW_STATE_OF_CHARGE;
+	}
+	else if(batteryData.batteryStateOfCharge > 80)
+	{
+		BatteryErrorStatus |= HIGH_STATE_OF_CHARGE;
+	}
+	printSOCWarningToConsole(batteryData, BatteryErrorStatus);
+}
+
+void isChargeRateWithinLimit(BatteryInfo batteryData)
 {
 	if(batteryData.batteryChargeRate > 0.8)
 	{
 		BatteryErrorStatus |= CHARGE_RATE_NOT_OK;
-		return false;
 	}
-	else
-	{
-		return true;
-	}
+	printChargeRateWarningToConsole(batteryData, BatteryErrorStatus);
 }
 
 bool batteryIsOk(BatteryInfo BatteryData)
@@ -84,7 +98,8 @@ bool batteryIsOk(BatteryInfo BatteryData)
 
 	if(BatteryErrorStatus)
 	{
-		printWarningToConsole(BatteryData);
+		// clear error status for next call of this API
+		BatteryErrorStatus = 0;
 		return false;
 	}
 	else
@@ -96,21 +111,40 @@ bool batteryIsOk(BatteryInfo BatteryData)
 void testWorkingOfBMS()
 {
 	BatteryInfo batteryCheckDataSet[5];
-	//dataset 1
+
+	// EC - all okay
 	batteryCheckDataSet[0].batteryTemperature = 25;
 	batteryCheckDataSet[0].batteryStateOfCharge = 70;
 	batteryCheckDataSet[0].batteryChargeRate = 0.7;
-	assert(batteryIsOk(batteryCheckDataSet[0]));
+        assert(batteryIsOk(batteryCheckDataSet[0]) == true);
 
-	//dataset 2
-	batteryCheckDataSet[1].batteryTemperature = 50;
-	batteryCheckDataSet[1].batteryStateOfCharge = 85;
+	// EC + BVA - low values
+	batteryCheckDataSet[1].batteryTemperature = -1;
+	batteryCheckDataSet[1].batteryStateOfCharge = 19;
 	batteryCheckDataSet[1].batteryChargeRate = 0;
-	assert(batteryIsOk(batteryCheckDataSet[1]));
+	assert(batteryIsOk(batteryCheckDataSet[1]) == false);
+
+	// EC + BVA - all okay
+	batteryCheckDataSet[2].batteryTemperature = 0;
+	batteryCheckDataSet[2].batteryStateOfCharge = 20;
+	batteryCheckDataSet[2].batteryChargeRate = 0.1;
+	assert(batteryIsOk(batteryCheckDataSet[2]) == true);
+
+	// EC + BVA - all okay
+	batteryCheckDataSet[3].batteryTemperature = 45;
+	batteryCheckDataSet[3].batteryStateOfCharge = 80;
+	batteryCheckDataSet[3].batteryChargeRate = 0.7;
+	assert(batteryIsOk(batteryCheckDataSet[3]) == true);
+
+	// EC + BVA - high values
+	batteryCheckDataSet[4].batteryTemperature = 46;
+	batteryCheckDataSet[4].batteryStateOfCharge = 81;
+	batteryCheckDataSet[4].batteryChargeRate = 0.9;
+	assert(batteryIsOk(batteryCheckDataSet[4]) == false);
 }
 
 int main()
 {
-	testWorkingOfBMS();
+    testWorkingOfBMS();
     return 0;
 }
