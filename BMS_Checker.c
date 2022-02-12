@@ -34,6 +34,22 @@ void setUnitofData(char* unit)
 	}
 }
 
+bool checkForLimit(const char *messageToConsole[5][2],
+					const char *unit[],
+					float batteryInfo,
+					unsigned char unitIdx,
+					unsigned char messageIdx,
+					float lowerLimit,
+					float upperLimit)
+{
+	if ((batteryInfo >= lowerLimit) && (batteryInfo <= upperLimit))
+	{
+		printWarningToConsole(messageToConsole, unit, batteryInfo, unitIdx, messageIdx, LanguageSelection);
+		return true;
+	}
+	return false;
+}
+
 bool batteryIsOk(BatteryInfo BatteryData)
 {
 	bool retVal = true;
