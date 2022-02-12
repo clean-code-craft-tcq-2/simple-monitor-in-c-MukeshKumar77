@@ -1,6 +1,11 @@
 #include "BMS_module.h"
 
-const char* chargeRateMessage[2] = {"Charge Rate is out of range" , "Die Laderate liegt außerhalb des Bereichs"};
+const char* chargeRateMessage[5][2] = {
+		{"Error: Charge Rate is below the range" , "Fehler: Ladestrom liegt unterhalb des Bereichs"},
+		{"Warning: Charge Rate is too low " , "Warnung: Die Ladestrom ist zu niedrig"},
+		{"Charge Rate is normal" , "Ladestrom ist normal"},
+		{"Warning: Charge Rate is too high" , "Warnung: Die Ladestrom ist zu hoch"},
+		{"Error: Charge Rate is above the range" , "Fehler: Ladestrom liegt über dem Bereich"}};
 
 void isChargeRateWithinLimit(BatteryInfo batteryData)
 {
@@ -10,11 +15,13 @@ void isChargeRateWithinLimit(BatteryInfo batteryData)
 
 	unsigned char errorStatus;
 	errorStatus = BatteryErrorStatus;
-	if(batteryData.batteryChargeRate > 0.8)
+	errorStatus = ((checkForLimit(chargeRateMessage, UnitofChargeRate, batteryData.batteryChargeRate, defaultUnitIdx, LOW_WARNING_MESSAGE, LOW_CHARGERATE_WARNING)) ||
+					(checkForLimit(chargeRateMessage, UnitofChargeRate, batteryData.batteryChargeRate, defaultUnitIdx, NORMAL_MESSSAGE, NORMAL_CHARGERATE)) ||
+					(checkForLimit(chargeRateMessage, UnitofChargeRate, batteryData.batteryChargeRate, defaultUnitIdx, HIGH_WARNING_MESSAGE, HIGH_CHARGERATE_WARNING)));
+	if(!errorStatus)
 	{
-		errorStatus |= CHARGE_RATE_NOT_OK;
-		printWarningToConsole(chargeRateMessage, UnitofChargeRate, batteryData.batteryChargeRate,
-								defaultUnitIdx, LanguageSelection);
+		errorStatus = ((checkForLimit(chargeRateMessage, UnitofChargeRate, batteryData.batteryChargeRate, defaultUnitIdx, LOW_BREACH_MESSAGE, LOW_CHARGERATE_BREACH)) ||
+						(checkForLimit(chargeRateMessage, UnitofChargeRate, batteryData.batteryChargeRate, defaultUnitIdx, HIGH_BREACH_MESSAGE, HIGH_CHARGERATE_BREACH)));
+		BatteryErrorStatus = errorStatus;
 	}
-	BatteryErrorStatus = errorStatus;
 }
