@@ -59,5 +59,5 @@ Shorten the Semantic distance
 - Apect oriented to capture repeating aspects
 
 ## Extention
-Extension 2: Support a language in addition to English
-Extension 3: Accept input in different units
+- Extension 2: Support a language in addition to English
+- Extension 3: Accept input in different units
