@@ -6,7 +6,7 @@ void isStateOfChargeWithinLimit(BatteryInfo batteryData)
 {
 	// set the unit to default
 	const char* UnitofSOC[] = {"%"};
-	unsigned char defaultUnit = 1;
+	unsigned char defaultUnitIdx = 1;
 
 	unsigned char errorStatus;
 	errorStatus = BatteryErrorStatus;
@@ -14,13 +14,13 @@ void isStateOfChargeWithinLimit(BatteryInfo batteryData)
 	{
 		errorStatus |= LOW_STATE_OF_CHARGE;
 		printWarningToConsole(SoCMessage, UnitofSOC, batteryData.batteryStateOfCharge,
-								defaultUnit, LanguageSelection);
+								defaultUnitIdx, LanguageSelection);
 	}
 	else if(batteryData.batteryStateOfCharge > 80)
 	{
 		errorStatus |= HIGH_STATE_OF_CHARGE;
 		printWarningToConsole(SoCMessage, UnitofSOC, batteryData.batteryStateOfCharge,
-								defaultUnit, LanguageSelection);
+								defaultUnitIdx, LanguageSelection);
 	}
 	BatteryErrorStatus = errorStatus;
 }
