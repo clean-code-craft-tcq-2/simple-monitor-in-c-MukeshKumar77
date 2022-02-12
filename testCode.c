@@ -6,7 +6,7 @@ void testSettingofLanguage()
 	setLanguage("German");
 	setUnitofData("C");
 
-	batteryCheckDataSet[0].batteryTemperature = 105;
+	batteryCheckDataSet[0].batteryTemperature = 72;
 	batteryCheckDataSet[0].batteryStateOfCharge = 70;
 	batteryCheckDataSet[0].batteryChargeRate = 0.5;
 	assert(batteryIsOk(batteryCheckDataSet[0]) == false);
@@ -22,7 +22,7 @@ void testSettingofUnit()
 	BatteryInfo batteryCheckDataSet[5];
 	setUnitofData("F");
 
-	batteryCheckDataSet[0].batteryTemperature = 700;
+	batteryCheckDataSet[0].batteryTemperature = 200;
 	batteryCheckDataSet[0].batteryStateOfCharge = 70;
 	batteryCheckDataSet[0].batteryChargeRate = 0.7;
 	assert(batteryIsOk(batteryCheckDataSet[0]) == false);
