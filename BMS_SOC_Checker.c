@@ -7,17 +7,27 @@ const char* SoCMessage[5][2] = {
 		{"Warning: SOC is approaching peak charge" , "Warnung: SOC nähert sich der Spitzenladung"},
 		{"Error: SOC is above the range" , "Fehler: SOC liegt über dem Bereich"}};
 
+// set the unit to default
+const char* UnitofSOC[] = {"%"};
+static unsigned char defaultUnitIdx = 1;
+
+static bool checkForSOCWarningFirst(float parameter);
+
+static bool checkForSOCWarningFirst(float parameter)
+{
+	bool retVal;
+	retVal = ((checkForLimit(SoCMessage, UnitofSOC, parameter, defaultUnitIdx, LOW_WARNING_MESSAGE, LOW_SOC_WARNING)) ||
+				(checkForLimit(SoCMessage, UnitofSOC, parameter, defaultUnitIdx, NORMAL_MESSSAGE, NORMAL_SOC)) ||
+				(checkForLimit(SoCMessage, UnitofSOC, parameter, defaultUnitIdx, HIGH_WARNING_MESSAGE, HIGH_SOC_WARNING)));
+	return(retVal);
+}
+
 void isStateOfChargeWithinLimit(BatteryInfo batteryData)
 {
-	// set the unit to default
-	const char* UnitofSOC[] = {"%"};
-	unsigned char defaultUnitIdx = 1;
-
 	unsigned char errorStatus;
 	errorStatus = BatteryErrorStatus;
-	errorStatus = ((checkForLimit(SoCMessage, UnitofSOC, batteryData.batteryStateOfCharge, defaultUnitIdx, LOW_WARNING_MESSAGE, LOW_SOC_WARNING)) ||
-					(checkForLimit(SoCMessage, UnitofSOC, batteryData.batteryStateOfCharge, defaultUnitIdx, NORMAL_MESSSAGE, NORMAL_SOC)) ||
-					(checkForLimit(SoCMessage, UnitofSOC, batteryData.batteryStateOfCharge, defaultUnitIdx, HIGH_WARNING_MESSAGE, HIGH_SOC_WARNING)));
+	errorStatus = checkForSOCWarningFirst(batteryData.batteryStateOfCharge);
+
 	if(!errorStatus)
 	{
 		errorStatus = ((checkForLimit(SoCMessage, UnitofSOC, batteryData.batteryStateOfCharge, defaultUnitIdx, LOW_BREACH_MESSAGE, LOW_SOC_BREACH)) ||
