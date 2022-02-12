@@ -17,6 +17,16 @@ void convertDataToStandardUnit(BatteryInfo* data, unsigned char selectedUnit)
 	}
 }
 
+bool checkWarning(float parameter);
+bool checkWarning(float parameter)
+{
+	bool retVal;
+	retVal = ((checkForLimit(temperatureMessage, UnitofBatteryData, parameter, BatteryDataUnitSelection, LOW_WARNING_MESSAGE, LOW_TEMPERATURE_WARNING)) ||
+						(checkForLimit(temperatureMessage, UnitofBatteryData, parameter, BatteryDataUnitSelection, NORMAL_MESSSAGE, NORMAL_TEMPERATURE)) ||
+						(checkForLimit(temperatureMessage, UnitofBatteryData, parameter, BatteryDataUnitSelection, HIGH_WARNING_MESSAGE, HIGH_TEMPERATURE_WARNING)));
+	return(retVal);
+}
+
 void isBatteryTemperatureWithinLimit(BatteryInfo batteryData)
 {
 	//take a copy of temperature to print at console
@@ -26,9 +36,8 @@ void isBatteryTemperatureWithinLimit(BatteryInfo batteryData)
 
 	unsigned char errorStatus;
 	errorStatus = BatteryErrorStatus;
-	errorStatus = ((checkForLimit(temperatureMessage, UnitofBatteryData, batteryData.batteryTemperature, BatteryDataUnitSelection, LOW_WARNING_MESSAGE, LOW_TEMPERATURE_WARNING)) ||
-					(checkForLimit(temperatureMessage, UnitofBatteryData, batteryData.batteryTemperature, BatteryDataUnitSelection, NORMAL_MESSSAGE, NORMAL_TEMPERATURE)) ||
-					(checkForLimit(temperatureMessage, UnitofBatteryData, batteryData.batteryTemperature, BatteryDataUnitSelection, HIGH_WARNING_MESSAGE, HIGH_TEMPERATURE_WARNING)));
+	errorStatus = checkWarning(batteryData.batteryTemperature);
+
 	if(!errorStatus)
 	{
 		errorStatus = ((checkForLimit(temperatureMessage, UnitofBatteryData, batteryData.batteryTemperature, BatteryDataUnitSelection, LOW_BREACH_MESSAGE, LOW_TEMPERATURE_BREACH)) ||
