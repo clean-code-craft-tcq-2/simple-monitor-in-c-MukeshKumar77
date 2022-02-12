@@ -58,6 +58,7 @@ Shorten the Semantic distance
 - Object oriented to encapsulate state with actions
 - Apect oriented to capture repeating aspects
 
-## Extention
+## Implemented Extentions
+- Extension 1: Early Warning
 - Extension 2: Support a language in addition to English
 - Extension 3: Accept input in different units
