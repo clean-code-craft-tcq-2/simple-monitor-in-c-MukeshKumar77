@@ -6,19 +6,37 @@
 #ifndef BMS_MODULE_H_
 #define BMS_MODULE_H_
 
-#define	ENGLISH						0x01
-#define	GERMAN						0x02
+#define	ENGLISH				0x01
+#define	GERMAN				0x02
 
 #define	TEMPERATURE_IN_CELSIUS		0x01
 #define	TEMPERATURE_IN_FAHRENHEIT	0x02
 #define STATE_OF_CHARGE_IN_PERCENT	0x03
 #define CHARGE_RATE_IN_AMPERE		0x04
 
-#define	HIGH_BATTERY_TEMPERATURE	0x01
-#define	LOW_BATTERY_TEMPERATURE		0x02
-#define HIGH_STATE_OF_CHARGE		0x04
-#define LOW_STATE_OF_CHARGE		    0x08
-#define CHARGE_RATE_NOT_OK		    0x10
+#define LOW_BREACH_MESSAGE		0x00
+#define LOW_WARNING_MESSAGE		0x01
+#define NORMAL_MESSSAGE			0x02
+#define HIGH_WARNING_MESSAGE		0x03
+#define HIGH_BREACH_MESSAGE		0x04
+
+#define LOW_SOC_BREACH 			0, 19
+#define LOW_SOC_WARNING			20, 24
+#define NORMAL_SOC			25, 75
+#define HIGH_SOC_WARNING		76, 80
+#define HIGH_SOC_BREACH			81, 100
+
+#define LOW_TEMPERATURE_BREACH 		-10, -0
+#define LOW_TEMPERATURE_WARNING		0, 2.25
+#define NORMAL_TEMPERATURE		2.26, 42.74
+#define HIGH_TEMPERATURE_WARNING	42.75, 45
+#define HIGH_TEMPERATURE_BREACH		46, 100
+
+#define LOW_CHARGERATE_BREACH 		-0.5, -0.1
+#define LOW_CHARGERATE_WARNING		0, 0.04
+#define NORMAL_CHARGERATE		0.05, 0.75
+#define HIGH_CHARGERATE_WARNING		0.76, 0.8
+#define HIGH_CHARGERATE_BREACH		0.9, 1
 
 
 extern unsigned char LanguageSelection;
@@ -36,18 +54,7 @@ extern unsigned char BatteryDataUnitSelection;
 */
 
 extern unsigned char BatteryErrorStatus;
-/* BatteryErrorStatus
-   7 6 5 4 3 2 1 0
-   x x x x x x x x
-   | | | | | | | |
-   | | | | | | | \___ Set if battery temperature is above 45
-   | | | | | | \_____ Set if battery temperature is below 0
-   | | | | | \_______ Set if State of Charge is above 80
-   | | | | \_________ Set if State of Charge is below 20
-   | | | \___________ Set if charge rate is beyond limit of 0.8
-   \_\_\_____________ Reserved for future use
-*/
-
+extern float fahrenheitTemp;
 
 typedef struct
 {
@@ -62,8 +69,20 @@ bool batteryIsOk(BatteryInfo BatteryData);
 void isBatteryTemperatureWithinLimit(BatteryInfo batteryData);
 void isStateOfChargeWithinLimit(BatteryInfo batteryData);
 void isChargeRateWithinLimit(BatteryInfo batteryData);
-void printWarningToConsole(const char *warningMessage[], const char *unitInfo[],
-							float batteryData, unsigned char unit, unsigned char language);
+void printWarningToConsole(const char *warningMessage[5][2],
+							const char *unitInfo[],
+							float batteryData,
+							unsigned char UnitIndex,
+							unsigned char MessageIndex,
+							unsigned char Language);
+
+bool checkForLimit(const char *messageToConsole[5][2],
+					const char *unit[],
+					float batteryInfo,
+					unsigned char unitIdx,
+					unsigned char messageIdx,
+					float lowerLimit,
+					float upperLimit);
 
 void setLanguage(char* language);
 void setUnitofData(char* unit);
