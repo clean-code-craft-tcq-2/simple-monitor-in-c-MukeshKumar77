@@ -6,32 +6,20 @@ unsigned char BatteryErrorStatus;
 unsigned char LanguageSelection;
 unsigned char BatteryDataUnitSelection;
 
-void setLanguage(char* language)
+void setLanguage(unsigned char language)
 {
 	//reset for every call of new setting
 	LanguageSelection = 0;
-	if(!strcmp(language, Language[0]))
-	{
-		LanguageSelection |= ENGLISH;
-	}
-	else if (!strcmp(language, Language[1]))
-	{
-		LanguageSelection |= GERMAN;
-	}
+	//set new language
+	LanguageSelection = language;
 }
 
-void setUnitofData(char* unit)
+void setUnitofData(unsigned char unit)
 {
 	//reset for every call of new setting
 	BatteryDataUnitSelection = 0;
-	if(!strcmp(unit, UnitofBatteryData[0]))
-	{
-		BatteryDataUnitSelection |= TEMPERATURE_IN_CELSIUS;
-	}
-	else if (!strcmp(unit, UnitofBatteryData[1]))
-	{
-		BatteryDataUnitSelection |= TEMPERATURE_IN_FAHRENHEIT;
-	}
+	//set new unit
+	BatteryDataUnitSelection = unit;
 }
 
 bool checkForLimit(const char *messageToConsole[5][2],
