@@ -3,8 +3,8 @@
 void testSettingofLanguage()
 {
 	BatteryInfo batteryCheckDataSet[5];
-	setLanguage("German");
-	setUnitofData("C");
+	setLanguage(GERMAN);
+	setUnitofData(TEMPERATURE_IN_CELSIUS);
 
 	batteryCheckDataSet[0].batteryTemperature = 72;
 	batteryCheckDataSet[0].batteryStateOfCharge = 70;
@@ -13,14 +13,14 @@ void testSettingofLanguage()
 	assert((LanguageSelection & GERMAN) == GERMAN);
 
 
-	setLanguage("English");
+	setLanguage(ENGLISH);
 	assert((LanguageSelection & ENGLISH) == ENGLISH);
 }
 
 void testSettingofUnit()
 {
 	BatteryInfo batteryCheckDataSet[5];
-	setUnitofData("F");
+	setUnitofData(TEMPERATURE_IN_FAHRENHEIT);
 
 	batteryCheckDataSet[0].batteryTemperature = 200;
 	batteryCheckDataSet[0].batteryStateOfCharge = 70;
@@ -28,14 +28,14 @@ void testSettingofUnit()
 	assert(batteryIsOk(batteryCheckDataSet[0]) == false);
 	assert((BatteryDataUnitSelection & TEMPERATURE_IN_FAHRENHEIT) == TEMPERATURE_IN_FAHRENHEIT);
 
-	setUnitofData("F");
+	setUnitofData(TEMPERATURE_IN_FAHRENHEIT);
 	batteryCheckDataSet[1].batteryTemperature = 100;
 	batteryCheckDataSet[1].batteryStateOfCharge = 70;
 	batteryCheckDataSet[1].batteryChargeRate = 0.7;
 	assert(batteryIsOk(batteryCheckDataSet[1]) == true);
 	assert((BatteryDataUnitSelection & TEMPERATURE_IN_FAHRENHEIT) == TEMPERATURE_IN_FAHRENHEIT);
 
-	setUnitofData("C");
+	setUnitofData(TEMPERATURE_IN_CELSIUS);
 	assert((BatteryDataUnitSelection & TEMPERATURE_IN_CELSIUS) == TEMPERATURE_IN_CELSIUS);
 }
 
@@ -47,7 +47,7 @@ void testWorkingOfBMS()
 	batteryCheckDataSet[0].batteryTemperature = 25;
 	batteryCheckDataSet[0].batteryStateOfCharge = 70;
 	batteryCheckDataSet[0].batteryChargeRate = 0.7;
-    assert(batteryIsOk(batteryCheckDataSet[0]) == true);
+        assert(batteryIsOk(batteryCheckDataSet[0]) == true);
 
 	// EC + BVA - low values
 	batteryCheckDataSet[1].batteryTemperature = -1;
