@@ -84,8 +84,8 @@ bool checkForLimit(const char *messageToConsole[5][2],
 					float lowerLimit,
 					float upperLimit);
 
-void setLanguage(char* language);
-void setUnitofData(char* unit);
+void setLanguage(unsigned char language);
+void setUnitofData(unsigned char unit);
 
 void testWorkingOfBMS();
 void testSettingofLanguage();
